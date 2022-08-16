@@ -1,5 +1,5 @@
-const User = require('../models/user');
-const bcryptjs = require('bcryptjs');
+const User = require("../models/user");
+const bcryptjs = require("bcryptjs");
 
 // GET
 const userGet = (req, res) => {
@@ -13,33 +13,39 @@ const userGet = (req, res) => {
 };
 
 // PUT
-const userPut = (req, res) => {
-  // Params. Also need to change the url route
+const userPut = async (req, res) => {
+  
   const { id } = req.params;
+  const { password, google, email, ...rest } = req.body;
+
+  if(password){
+    const salt = bcryptjs.genSaltSync(); // Is 10 of default. Is the number of salts
+    rest.password = bcryptjs.hashSync(password, salt);
+  }
+
+  const user = await User.findByIdAndUpdate(id, rest);
+
   res.status(200).json({
     message: "put api",
-    id,
+    user,
   });
 };
 
 // POST
 const userPost = async (req, res) => {
-  
   const { name, email, password, role } = req.body;
-  const user = new User({name, email, password, role});
-
-  // Verify if the email exists
+  const user = new User({ name, email, password, role });
 
   // Encript the password
-  const salt = bcryptjs.genSaltSync();  // Is 10 of default. Is the number of salts
+  const salt = bcryptjs.genSaltSync(); // Is 10 of default. Is the number of salts
   user.password = bcryptjs.hashSync(password, salt);
-  
+
   // Save in DB
   await user.save();
-  
+
   res.status(200).json({
     message: "post api",
-    user
+    user,
   });
 };
 
